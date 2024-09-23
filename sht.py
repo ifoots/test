@@ -44,7 +44,7 @@ async def ban_all(group_id):
             count_deleted += 1
             await asyncio.sleep(0.1)  # 防止触发限速，短暂等待
         except Exception as e:
-            await app.send_message(chat_id=group_id,text=f"/kick@GroupHelpBot {user_id}")
+            await app.send_message(chat_id=group_id,text=f"/kick@ghStaffBot {user_id}")
             # print(f"Error banning user {user_id} in group {group_id}: {e}")
             continue
 
