@@ -37,7 +37,7 @@ def load_user_ids(file_path='id'):
 user_ids = load_user_ids()
 
 # 初始化 Pyrogram 客户端
-app = Client(session_name=session, api_id=api_id, api_hash=api_hash)
+app = Client(session, api_id=api_id, api_hash=api_hash)
 
 # 定义要操作的群组 ID
 groups = {-1001462465413}  # 替换为实际的群组 ID
