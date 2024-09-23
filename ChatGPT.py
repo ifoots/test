@@ -4,7 +4,7 @@ import os
 import logging
 
 from pyrogram import Client, filters
-from pyrogram.enums import parse_mode
+from pyrogram.enums import ParseMode
 from pyrogram.types import Message
 from dotenv import load_dotenv
 
@@ -37,20 +37,20 @@ def load_user_ids(file_path='id'):
 user_ids = load_user_ids()
 
 # 初始化 Pyrogram 客户端
-app = Client(session, api_id=api_id, api_hash=api_hash)
+app = Client(session_name=session, api_id=api_id, api_hash=api_hash)
 
 # 定义要操作的群组 ID
 groups = {-1001462465413}  # 替换为实际的群组 ID
 
 async def ban_user(group_id, user_id):
     """
-    踢出单个用户，失败时尝试发指令让机器人踢出用户。
+    禁言单个用户，失败时尝试踢出用户。
     """
     try:
         await app.ban_chat_member(chat_id=group_id, user_id=user_id, until_date=datetime.now() + timedelta(seconds=35))
         return True
     except Exception as e:
-        logging.warning(f"踢出用户 {user_id} 失败: {e}. 尝试让机器人踢出...")
+        logging.warning(f"禁言用户 {user_id} 失败: {e}. 尝试踢出...")
         try:
             await app.send_message(chat_id=group_id, text=f"/kick@ghStaffBot {user_id}")
         except Exception as kick_error:
@@ -58,31 +58,27 @@ async def ban_user(group_id, user_id):
         return False
 
 async def process_group(group_id):
-    """
-    处理单个群组中的所有用户。
-    """
+  
     successful_count = 0
     for user_id in user_ids:
         if await ban_user(group_id, user_id):
             successful_count += 1
         await asyncio.sleep(0.1)  # 防止触发速率限制
-    await app.send_message(chat_id=group_id, text=f'已处理 <code>{successful_count}</code> 用户', parse_mode=parse_mode.HTML)
+    await app.send_message(chat_id=group_id, text=f'已处理 <code>{successful_count}</code> 用户', parse_mode=ParseMode.HTML)
     return successful_count
 
 @app.on_message(filters.command('run'))
 async def run_command(client: Client, message: Message):
-    """
-    响应 /run 命令，对所有指定的群组进行处理。
-    """
+  
     tasks = []
     for idx, group_id in enumerate(groups, start=1):
         logging.info(f'正在检查第 {idx} 个群 (ID: {group_id})')
-        await app.send_message(chat_id=group_id, text=f'正在检查第 {idx} 个群', parse_mode=parse_mode.HTML)
+        await app.send_message(chat_id=group_id, text=f'正在检查第 {idx} 个群', parse_mode=ParseMode.HTML)
         tasks.append(process_group(group_id))
     
     results = await asyncio.gather(*tasks)
     total_successful = sum(results)
-    logging.info(f'所有群组处理完成，共踢出 {total_successful} 个用户。')
+    logging.info(f'所有群组处理完成，共禁言 {total_successful} 个用户。')
 
 if __name__ == "__main__":
     app.run()
